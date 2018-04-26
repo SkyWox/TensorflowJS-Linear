@@ -1,0 +1,41 @@
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.10.0">
+    </script>
+</head>
+
+<body>
+    <h4>Tiny TFJS example 2
+        <hr/>
+    </h4>
+    <h2>Build an Equation in the form y = ax + b and ML will try to guess it!</h2>
+    <span>y = </span>
+    <input id="varA" type="number" size="3" value="2">
+    <span> x + </span>
+    <input id="varB" type="number" size="3" value="3">
+    <br>
+    <span>Number of sample points ML gets: </span>
+    <input id="numData" type="number" size="5" value="5">
+    <br>
+    <span>Number of epochs: </span>
+    <input id="numEpochs" type="number" size="5" value="250">
+    <br>
+    <span>X to predict: </span>
+    <input id="guessMe" type="number" size="3" value="7">
+    <button onclick="myFirstTfjs()">Guess</button>
+    <br>
+    <div id="correct_answer">Correct answer:
+        <br>
+    </div>
+    <div>ML guesses:
+        <br>
+    </div>
+    <div id="micro_out_div"></div>
+    <canvas id="myCanvas"></canvas>
+    <script src="./index.js">
+    </script>
+
+</body>
+
+</html>
