@@ -29,9 +29,6 @@ async function myFirstTfjs() {
     y.push(a * xx + Number(b))
   })
 
-  console.log(x)
-  console.log(y)
-
   const xs = tf.tensor2d(x, [x.length, 1])
   const ys = tf.tensor2d(y, [y.length, 1])
 
