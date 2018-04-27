@@ -1,3 +1,39 @@
+function getPolyEq() {
+  const polyEq = document
+    .getElementById('polyEq')
+    .value.replace(/ /g, '')
+    .split(/(?=[$-/:-?{-~!"_`\[\]])/gi)
+
+  //mimic defaultDict in python
+  var coeffs = new Proxy(
+    {},
+    {
+      get: (target, name) => (name in target ? target[name] : 0)
+    }
+  )
+
+  polyEq.forEach(phrase => {
+    const [coeff, base, exp] = phrase.split(/(?=[x^])/gi)
+    if (base) {
+      if (exp) {
+        coeffs[exp.substring(1)] += Number(coeff)
+      } else {
+        coeffs['0'] += Number(coeff)
+      }
+    } else {
+      if (phrase[0] === '+') {
+        coeffs.const += Number(phrase.substring(1))
+      } else if (phrase[0] === '-') {
+        coeffs.const -= Number(phrase.substring(1))
+      } else {
+        coeffs.const += Number(phrase)
+      }
+    }
+  })
+
+  return coeffs
+}
+
 async function myFirstTfjs() {
   // Create a simple model.
   const model = tf.sequential()
@@ -9,8 +45,10 @@ async function myFirstTfjs() {
     optimizer: 'sgd'
   })
 
-  const m = document.getElementById('varM').value
-  const b = document.getElementById('varB').value
+  coeffs = getPolyEq()
+
+  const m = coeffs['0']
+  const b = coeffs.const
   const numData = document.getElementById('numData').value
   const numEpochs = document.getElementById('numEpochs').value
   const guessMe = document.getElementById('guessMe').value
@@ -38,7 +76,4 @@ async function myFirstTfjs() {
       tf.tensor2d([guessMe], [1, 1])
     )
   })
-
-  // Use the model to do inference on a data point the model hasn't seen.
-  // Should print approximately 39.
 }

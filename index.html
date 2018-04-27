@@ -7,22 +7,20 @@
 </head>
 
 <body>
-    <h3>Build an Equation in the form y = mx + b and Tensorflow JS will try to guess it!</h3>
+    <h3>Build a polynomial equation and Tensorflow JS will try to guess it!</h3>
     <style>
         body {
             padding: 50px;
         }
     </style>
-    <span>y = </span>
-    <input id="varM" type="number" size="3" value="2">
-    <span> x + </span>
-    <input id="varB" type="number" size="3" value="3">
+    <span>Enter your polynomial: y=</span>
+    <input id="polyEq" type="text" value="3x^3 + 4x^2 + 8x + 5">
     <br>
-    <span>Number of sample points ML gets: </span>
+    <span>Number of sample points: </span>
     <input id="numData" type="number" size="5" value="5">
     <br>
     <span>Number of epochs: </span>
-    <input id="numEpochs" type="number" size="5" value="250">
+    <input id="numEpochs" type="number" size="5" value="5">
     <br>
     <span>X to predict: </span>
     <input id="guessMe" type="number" size="3" value="7">
