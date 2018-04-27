@@ -4,7 +4,6 @@
 
 * [TensorflowJS-Linear](#tensorflowjs-linear)
   * [What is it?](#what-is-it)
-  * [[Demo](http://skywox.me/TensorflowJS-Linear/)](#demohttpskywoxmetensorflowjs-linear)
   * [How to use:](#how-to-use)
   * [What's happening?](#whats-happening)
   * [Running locally](#running-locally)
@@ -16,7 +15,7 @@
 
 An implementation of Tensorflow JS that will try to guess a correct Y value for a linear equation you build.
 
-## [Demo](http://skywox.me/TensorflowJS-Linear/)
+**[Demo](http://skywox.me/TensorflowJS-Linear/)**
 
 ## How to use:
 
