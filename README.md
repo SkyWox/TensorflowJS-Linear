@@ -34,6 +34,7 @@ Machine learning in your browser! This uses Tensorflow JS to implement a simple 
 
 ## Running locally
 
+Scripts are written for a \*NIX environment  
 Assuming you use yarn:
 
 ```sh
