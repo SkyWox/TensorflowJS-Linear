@@ -9,13 +9,13 @@ async function myFirstTfjs() {
     optimizer: 'sgd'
   })
 
-  const a = document.getElementById('varA').value
+  const m = document.getElementById('varM').value
   const b = document.getElementById('varB').value
   const numData = document.getElementById('numData').value
   const numEpochs = document.getElementById('numEpochs').value
   const guessMe = document.getElementById('guessMe').value
 
-  document.getElementById('correct_answer').innerHTML += a * guessMe + Number(b)
+  document.getElementById('correct_answer').innerHTML += m * guessMe + Number(b)
   // Generate some synthetic data for training. (y = 2x - 1)
   var x = []
   const range = [0, 10]
@@ -26,7 +26,7 @@ async function myFirstTfjs() {
   }
   var y = []
   x.map(xx => {
-    y.push(a * xx + Number(b))
+    y.push(m * xx + Number(b))
   })
 
   const xs = tf.tensor2d(x, [x.length, 1])
