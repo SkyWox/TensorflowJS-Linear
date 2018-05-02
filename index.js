@@ -20,74 +20,136 @@ function getPolyEq() {
     const [coeff, base, exp] = phrase.split(/(?=[x^])/gi)
     if (base) {
       if (exp) {
-        coeffs[exp.substring(1)] += Number(coeff)
+        coeffs[Number(exp.substring(1))] += Number(coeff)
       } else {
-        coeffs['0'] += Number(coeff)
+        coeffs[1] += Number(coeff)
       }
     } else {
       if (phrase[0] === '+') {
-        coeffs.const += Number(phrase.substring(1))
+        coeffs[0] += Number(phrase.substring(1))
       } else if (phrase[0] === '-') {
-        coeffs.const -= Number(phrase.substring(1))
+        coeffs[0] -= Number(phrase.substring(1))
       } else {
-        coeffs.const += Number(phrase)
+        coeffs[0] += Number(phrase)
       }
     }
   })
 
+  // Make sure all slots are filled b/c js dicts hide their 0s
+  var highestOrder = Object.keys(coeffs).reduce(function(a, b) {
+    return a > b ? a : b
+  })
+  for (let i = 0; i < highestOrder; i++) {
+    if (coeffs[i] == 0) {
+      coeffs[i] = 0
+    }
+  }
+
   return coeffs
 }
 
+const learningRate = 0.5
+const optimizer = tf.train.sgd(learningRate)
+
+function predict(x, coefficients) {
+  // y = a * x ^ 3 + b * x ^ 2 + c * x + d
+  return tf.tidy(() => {
+    return coefficients[3]
+      .mul(x.pow(tf.scalar(3, 'int32')))
+      .add(coefficients[2].mul(x.square()))
+      .add(coefficients[1].mul(x))
+      .add(coefficients[0])
+  })
+}
+
+function loss(prediction, labels) {
+  // Having a good error function is key for training a machine learning model
+  const error = prediction
+    .sub(labels)
+    .square()
+    .mean()
+  return error
+}
+
+async function train(xs, ys, coefficients, numEpochs) {
+  for (let iter = 0; iter < numEpochs; iter++) {
+    // optimizer.minimize is where the training happens.
+
+    // The function it takes must return a numerical estimate (i.e. loss)
+    // of how well we are doing using the current state of
+    // the variables we created at the start.
+
+    // This optimizer does the 'backward' step of our training process
+    // updating variables defined previously in order to minimize the
+    // loss.
+    optimizer.minimize(() => {
+      // Feed the examples into the model
+      const pred = predict(xs, coefficients)
+      return loss(pred, ys)
+    })
+
+    // Use tf.nextFrame to not block the browser.
+    await tf.nextFrame()
+  }
+}
+
+function getDataSync(coefficients) {
+  var sync = {}
+  for (var n in coefficients) {
+    sync[n] = coefficients[n].dataSync()[0]
+  }
+  return sync
+}
+
 async function myFirstTfjs() {
-  // Plot data
-  const trueCoefficients = {3: -0.8, 2: -0.2, 1: 0.9, 0: 0.5}
-  const trainingData = generateData(100, trueCoefficients)
+  const trueCoefficients = getPolyEq()
+
+  const m = trueCoefficients[1]
+  const b = trueCoefficients[0]
+  const numData = Number(document.getElementById('numData').value)
+  const numEpochs = document.getElementById('numEpochs').value
+  const guessMe = document.getElementById('guessMe').value
+  // These are the things we want the model
+  // to learn in order to do prediction accurately. We will initialize
+  // them with random values.
+  var workingCoefficients = {}
+  for (var i = 0; i < 4; i++) {
+    workingCoefficients[String(i)] = tf.variable(tf.scalar(Math.random()))
+  }
+
+  const trainingData = generateData(numData, trueCoefficients)
 
   // Plot original data
   renderCoefficients('#data .coeff', trueCoefficients)
   await plotData('#data .plot', trainingData.xs, trainingData.ys)
 
-  // Create a simple model.
-  const model = tf.sequential()
-  model.add(tf.layers.dense({units: 1, inputShape: [1]}))
-
-  // Prepare the model for training: Specify the loss and the optimizer.
-  model.compile({
-    loss: 'meanSquaredError',
-    optimizer: 'sgd'
-  })
-
-  const coeffs = getPolyEq()
-
-  const m = coeffs['0']
-  const b = coeffs.const
-  const numData = document.getElementById('numData').value
-  const numEpochs = document.getElementById('numEpochs').value
-  const guessMe = document.getElementById('guessMe').value
+  // See what the predictions look like with random coefficients
+  renderCoefficients('#random .coeff', getDataSync(workingCoefficients))
+  const predictionsBefore = predict(trainingData.xs, workingCoefficients)
+  await plotDataAndPredictions(
+    '#random .plot',
+    trainingData.xs,
+    trainingData.ys,
+    predictionsBefore
+  )
 
   document.getElementById('correct_answer').innerHTML += m * guessMe + Number(b)
-  // Generate some synthetic data for training. (y = 2x - 1)
-  var x = []
-  const range = [0, 10]
-  const step = Math.floor((range[1] - range[0]) / numData)
 
-  for (let i = 0; i < numData; i++) {
-    x.push(range[0] + step * i)
-  }
-  var y = []
-  x.map(xx => {
-    y.push(m * xx + Number(b))
-  })
+  //Train the model!
+  await train(trainingData.xs, trainingData.ys, workingCoefficients, numEpochs)
 
-  const xs = tf.tensor2d(x, [x.length, 1])
-  const ys = tf.tensor2d(y, [y.length, 1])
+  // See what the final results predictions are after training.
+  renderCoefficients('#trained .coeff', getDataSync(workingCoefficients))
+  const predictionsAfter = predict(trainingData.xs, workingCoefficients)
+  await plotDataAndPredictions(
+    '#trained .plot',
+    trainingData.xs,
+    trainingData.ys,
+    predictionsAfter
+  )
 
-  // Train the model using the data.
-  model.fit(xs, ys, {epochs: numEpochs}).then(() => {
-    document.getElementById('micro_out_div').innerText = model.predict(
-      tf.tensor2d([guessMe], [1, 1])
-    )
-  })
+  predictionsBefore.dispose()
+  predictionsAfter.dispose()
 }
 
 document.getElementById('guessBtn').addEventListener('click', myFirstTfjs)
