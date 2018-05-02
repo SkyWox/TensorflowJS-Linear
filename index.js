@@ -36,10 +36,7 @@ function getPolyEq() {
   })
 
   // Make sure all slots are filled b/c js dicts hide their 0s
-  var highestOrder = Object.keys(coeffs).reduce(function(a, b) {
-    return a > b ? a : b
-  })
-  for (let i = 0; i < highestOrder; i++) {
+  for (let i = 0; i <= maxOrder(coeffs); i++) {
     if (coeffs[i] == 0) {
       coeffs[i] = 0
     }
@@ -95,61 +92,81 @@ async function train(xs, ys, coefficients, numEpochs) {
 
 function getDataSync(coefficients) {
   var sync = {}
-  for (var n in coefficients) {
+  for (let n in coefficients) {
     sync[n] = coefficients[n].dataSync()[0]
   }
   return sync
 }
 
+function coefficientSubset(coefficients, highest) {
+  var coeff = coefficients
+  for (let i = highest + 1; i <= maxOrder(coefficients); i++) {
+    coeff[i] = tf.variable(tf.scalar(0))
+  }
+  return coeff
+}
+
+function maxOrder(coeff) {
+  // Hardwired to return no less than 3 so that all neccessary tensors get built to run the model
+  return Math.max(
+    3,
+    Object.keys(coeff).reduce(function(a, b) {
+      return a > b ? a : b
+    })
+  )
+}
+
+function randomCoefficients(order, maximumOrder) {
+  var coefficients = {}
+  for (let i = 0; i <= order; i++) {
+    coefficients[String(i)] = tf.variable(tf.scalar(Math.random()))
+  }
+  for (let i = order + 1; i <= maximumOrder; i++) {
+    const buffer = tf.buffer([1])
+    buffer.set(0, 0)
+    coefficients[String(i)] = buffer.toTensor()
+  }
+  return coefficients
+}
+
 async function myFirstTfjs() {
   const trueCoefficients = getPolyEq()
+  console.log(trueCoefficients)
 
-  const m = trueCoefficients[1]
-  const b = trueCoefficients[0]
   const numData = Number(document.getElementById('numData').value)
   const numEpochs = document.getElementById('numEpochs').value
-  const guessMe = document.getElementById('guessMe').value
   // These are the things we want the model
   // to learn in order to do prediction accurately. We will initialize
   // them with random values.
-  var workingCoefficients = {}
-  for (var i = 0; i < 4; i++) {
-    workingCoefficients[String(i)] = tf.variable(tf.scalar(Math.random()))
-  }
-
+  const maximumOrder = maxOrder(trueCoefficients)
   const trainingData = generateData(numData, trueCoefficients)
 
   // Plot original data
   renderCoefficients('#data .coeff', trueCoefficients)
   await plotData('#data .plot', trainingData.xs, trainingData.ys)
 
-  // See what the predictions look like with random coefficients
-  renderCoefficients('#random .coeff', getDataSync(workingCoefficients))
-  const predictionsBefore = predict(trainingData.xs, workingCoefficients)
-  await plotDataAndPredictions(
-    '#random .plot',
-    trainingData.xs,
-    trainingData.ys,
-    predictionsBefore
-  )
-
-  document.getElementById('correct_answer').innerHTML += m * guessMe + Number(b)
-
-  //Train the model!
-  await train(trainingData.xs, trainingData.ys, workingCoefficients, numEpochs)
-
-  // See what the final results predictions are after training.
-  renderCoefficients('#trained .coeff', getDataSync(workingCoefficients))
-  const predictionsAfter = predict(trainingData.xs, workingCoefficients)
-  await plotDataAndPredictions(
-    '#trained .plot',
-    trainingData.xs,
-    trainingData.ys,
-    predictionsAfter
-  )
-
-  predictionsBefore.dispose()
-  predictionsAfter.dispose()
+  for (let i = 1; i <= maximumOrder; i++) {
+    const workingCoefficients = randomCoefficients(i, maximumOrder)
+    train(
+      trainingData.xs,
+      trainingData.ys,
+      workingCoefficients,
+      numEpochs
+    ).then(async () => {
+      renderCoefficients(
+        '#out' + i + ' .coeff',
+        getDataSync(workingCoefficients)
+      )
+      const predictionsBefore = predict(trainingData.xs, workingCoefficients)
+      await plotDataAndPredictions(
+        '#out' + i + ' .plot',
+        trainingData.xs,
+        trainingData.ys,
+        predictionsBefore
+      )
+      predictionsBefore.dispose()
+    })
+  }
 }
 
 document.getElementById('guessBtn').addEventListener('click', myFirstTfjs)

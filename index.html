@@ -20,17 +20,8 @@
     <span>Number of epochs: </span>
     <input id="numEpochs" type="number" size="5" value="75">
     <br>
-    <span>X to predict: </span>
-    <input id="guessMe" type="number" size="3" value="7">
     <button id="guessBtn">Guess</button>
     <br>
-    <div id="correct_answer">Correct answer:
-        <br>
-    </div>
-    <div>ML guesses:
-        <br>
-    </div>
-    <div id="micro_out_div"></div>
     <div class="plots">
         <div id="data">
             <div class="caption">Original Data (Synthetic)</div>
@@ -39,16 +30,23 @@
             </div>
             <div class="plot"></div>
         </div>
-        <div id="random">
-            <div class="caption">Fit curve with random coefficients (before training)</div>
-            <div class="caption">Random coeffecients:
+        <div id="out1">
+            <div class="caption">Fit curve with 1st order coefficients</div>
+            <div class="caption">1st order coefficients:
                 <span class='coeff'></span>
             </div>
             <div class="plot"></div>
         </div>
-        <div id="trained">
-            <div class="caption">Fit curve with learned coefficients (after training)</div>
-            <div class="caption">Learned coeffecients:
+        <div id="out2">
+            <div class="caption">Fit curve with 2nd order coefficients</div>
+            <div class="caption">2nd order coefficients:
+                <span class='coeff'></span>
+            </div>
+            <div class="plot"></div>
+        </div>
+        <div id="out3">
+            <div class="caption">Fit curve with 3rd order coefficients</div>
+            <div class="caption">3rd order coefficients:
                 <span class='coeff'></span>
             </div>
             <div class="plot"></div>
