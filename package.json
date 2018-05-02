@@ -13,7 +13,9 @@
     "vega-embed": "^3.2.0"
   },
   "scripts": {
-    "watch": "NODE_ENV=development parcel --no-hmr --open index.html "
+    "watch": "NODE_ENV=development parcel --no-hmr --open index.html ",
+    "build":
+      "NODE_ENV=production parcel build index.html  --no-minify --public-url ./"
   },
   "devDependencies": {
     "clang-format": "~1.2.2",
