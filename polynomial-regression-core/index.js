@@ -1,6 +1,6 @@
-import * as tf from '@tensorflow/tfjs'
-import { generateData } from './data'
-import { plotData, plotDataAndPredictions, renderCoefficients } from './ui'
+import * as tf from "@tensorflow/tfjs";
+import { generateData } from "./data";
+import { plotData, plotDataAndPredictions, renderCoefficients } from "./ui";
 
 /**
  * We want to learn the coefficients that give correct solutions to the
@@ -17,19 +17,11 @@ import { plotData, plotDataAndPredictions, renderCoefficients } from './ui'
  * values of y that fit the curve implied by our example.
  */
 
-// Step 1. Set up variables, these are the things we want the model
-// to learn in order to do prediction accurately. We will initialize
-// them with random values.
-const a = tf.variable(tf.scalar(Math.random()))
-const b = tf.variable(tf.scalar(Math.random()))
-const c = tf.variable(tf.scalar(Math.random()))
-const d = tf.variable(tf.scalar(Math.random()))
-
 // Step 2. Create an optimizer, we will use this later. You can play
 // with some of these values to see how the model perfoms.
-const numIterations = 75
-const learningRate = 0.5
-const optimizer = tf.train.sgd(learningRate)
+const numIterations = 75;
+const learningRate = 0.5;
+const optimizer = tf.train.sgd(learningRate);
 
 // Step 3. Write our training process functions.
 
@@ -42,15 +34,15 @@ const optimizer = tf.train.sgd(learningRate)
  *
  * @return number predicted y value
  */
-function predict(x) {
+function predict(x, coefficients) {
   // y = a * x ^ 3 + b * x ^ 2 + c * x + d
   return tf.tidy(() => {
-    return a
-      .mul(x.pow(tf.scalar(3, 'int32')))
-      .add(b.mul(x.square()))
-      .add(c.mul(x))
-      .add(d)
-  })
+    return coefficients["3"]
+      .mul(x.pow(tf.scalar(3, "int32")))
+      .add(coefficients["2"].mul(x.square()))
+      .add(coefficients["1"].mul(x))
+      .add(coefficients["0"]);
+  });
 }
 
 /*
@@ -65,8 +57,8 @@ function loss(prediction, labels) {
   const error = prediction
     .sub(labels)
     .square()
-    .mean()
-  return error
+    .mean();
+  return error;
 }
 
 /*
@@ -75,7 +67,7 @@ function loss(prediction, labels) {
  * xs - training data x values
  * ys — training data y values
  */
-async function train(xs, ys, numIterations) {
+async function train(xs, ys, coefficients, numIterations) {
   for (let iter = 0; iter < numIterations; iter++) {
     // optimizer.minimize is where the training happens.
 
@@ -88,57 +80,68 @@ async function train(xs, ys, numIterations) {
     // loss.
     optimizer.minimize(() => {
       // Feed the examples into the model
-      const pred = predict(xs)
-      return loss(pred, ys)
-    })
+      const pred = predict(xs, coefficients);
+      return loss(pred, ys);
+    });
 
     // Use tf.nextFrame to not block the browser.
-    await tf.nextFrame()
+    await tf.nextFrame();
   }
 }
 
+function getDataSync(coefficients) {
+  var sync = {};
+  for (var n in coefficients) {
+    sync[n] = coefficients[n].dataSync()[0];
+  }
+  return sync;
+}
+
 async function learnCoefficients(trueCoefficients) {
-  const trainingData = generateData(100, trueCoefficients)
+  // These are the things we want the model
+  // to learn in order to do prediction accurately. We will initialize
+  // them with random values.
+  var workingCoefficients = {};
+  for (var i = 0; i < 4; i++) {
+    workingCoefficients[String(i)] = tf.variable(tf.scalar(Math.random()));
+  }
+
+  const trainingData = generateData(100, trueCoefficients);
 
   // Plot original data
-  renderCoefficients('#data .coeff', trueCoefficients)
-  await plotData('#data .plot', trainingData.xs, trainingData.ys)
+  renderCoefficients("#data .coeff", trueCoefficients);
+  await plotData("#data .plot", trainingData.xs, trainingData.ys);
 
   // See what the predictions look like with random coefficients
-  renderCoefficients('#random .coeff', {
-    3: a.dataSync()[0],
-    2: b.dataSync()[0],
-    1: c.dataSync()[0],
-    0: d.dataSync()[0]
-  })
-  const predictionsBefore = predict(trainingData.xs)
+  renderCoefficients("#random .coeff", getDataSync(workingCoefficients));
+  const predictionsBefore = predict(trainingData.xs, workingCoefficients);
   await plotDataAndPredictions(
-    '#random .plot',
+    "#random .plot",
     trainingData.xs,
     trainingData.ys,
     predictionsBefore
-  )
+  );
 
   // Train the model!
-  await train(trainingData.xs, trainingData.ys, numIterations)
+  await train(
+    trainingData.xs,
+    trainingData.ys,
+    workingCoefficients,
+    numIterations
+  );
 
   // See what the final results predictions are after training.
-  renderCoefficients('#trained .coeff', {
-    3: a.dataSync()[0],
-    2: b.dataSync()[0],
-    1: c.dataSync()[0],
-    0: d.dataSync()[0]
-  })
-  const predictionsAfter = predict(trainingData.xs)
+  renderCoefficients("#trained .coeff", getDataSync(workingCoefficients));
+  const predictionsAfter = predict(trainingData.xs, workingCoefficients);
   await plotDataAndPredictions(
-    '#trained .plot',
+    "#trained .plot",
     trainingData.xs,
     trainingData.ys,
     predictionsAfter
-  )
+  );
 
-  predictionsBefore.dispose()
-  predictionsAfter.dispose()
+  predictionsBefore.dispose();
+  predictionsAfter.dispose();
 }
 
-learnCoefficients({ 3: -0.8, 2: -0.2, 1: 0.9, 0: 0.5 })
+learnCoefficients({ 3: -0.8, 2: -0.2, 1: 0.9, 0: 0.5 });
