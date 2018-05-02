@@ -9,21 +9,9 @@ export function generateData(numPoints, coeff, sigma = 0.04) {
 
     const xs = tf.randomUniform([numPoints], -1, 1)
 
-    //
-    // So looping over the .add function doesn't add in the terms.
-    // I think it's because it doesn't AWAIT for the for loop to finish
-    //
-
-    // Generate polynomial data
+    // Generate polynomial data - can't add sequentially - has to be one go
     var ys = tf
       .randomNormal([numPoints], 0, sigma) // Add random noise to the generated data
-      /*
-    for (var c in coe) {
-      console.log(Number(c))
-      console.log(coe[c])
-      ys.add(coe[c].mul(xs.pow(tf.scalar(Number(c), 'int32'))))
-    }
-    */
       .add(coe['0'].mul(xs.pow(tf.scalar(0, 'int32'))))
       .add(coe['3'].mul(xs.pow(tf.scalar(3, 'int32'))))
       .add(coe['2'].mul(xs.pow(tf.scalar(2, 'int32'))))
