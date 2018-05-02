@@ -12,13 +12,13 @@
         }
     </style>
     <span>Enter your polynomial: y=</span>
-    <input id="polyEq" type="text" value="3x^3 + 4x^2 + 8x + 5">
+    <input id="polyEq" type="text" value="-8x^3 + -2x^2 + 9x + 5">
     <br>
     <span>Number of sample points: </span>
-    <input id="numData" type="number" size="5" value="5">
+    <input id="numData" type="number" size="5" value="100">
     <br>
     <span>Number of epochs: </span>
-    <input id="numEpochs" type="number" size="5" value="5">
+    <input id="numEpochs" type="number" size="5" value="75">
     <br>
     <span>X to predict: </span>
     <input id="guessMe" type="number" size="3" value="7">
@@ -35,6 +35,20 @@
         <div id="data">
             <div class="caption">Original Data (Synthetic)</div>
             <div class="caption">True coeffecients:
+                <span class='coeff'></span>
+            </div>
+            <div class="plot"></div>
+        </div>
+        <div id="random">
+            <div class="caption">Fit curve with random coefficients (before training)</div>
+            <div class="caption">Random coeffecients:
+                <span class='coeff'></span>
+            </div>
+            <div class="plot"></div>
+        </div>
+        <div id="trained">
+            <div class="caption">Fit curve with learned coefficients (after training)</div>
+            <div class="caption">Learned coeffecients:
                 <span class='coeff'></span>
             </div>
             <div class="plot"></div>
